@@ -39,6 +39,15 @@ resource "aws_codebuild_project" "default" {
     # and the specified build environment image is not provided by AWS CodeBuild with Docker support.
     # Otherwise, all associated builds that attempt to interact with the Docker daemon fail.
     privileged_mode = "${var.privileged_mode}"
+
+    #
+    #
+    #
+    environment_variable {
+      "name"  = "BUILDKEY"
+      "value" = "/codebuild/bitbucket/build_ssh_key"
+      "type"  = "PARAMETER_STORE"
+    }
   }
 
   # Information about the build input source code for the build project.
@@ -150,6 +159,20 @@ data "aws_iam_policy_document" "policy" {
     resources = [
       "${var.artifact_bucket_arn}",
       "${var.artifact_bucket_arn}/*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParameters",
+      "ssm:GetParameter",
+      "ssm:GetParameterHistory",
+    ]
+
+    resources = [
+      "arn:aws:ssm:*:*:parameter/codebuild/*",
     ]
   }
 }
