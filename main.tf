@@ -160,7 +160,7 @@ data "aws_iam_policy_document" "policy" {
     ]
 
     resources = [
-      "${var.artifact_bucket}/*",
+      "arn:aws:s3:::${var.artifact_bucket}/*",
     ]
   }
 
