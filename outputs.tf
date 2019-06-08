@@ -62,3 +62,13 @@ output "iam_policy_document" {
   value       = "${aws_iam_policy.default.policy}"
   description = "The policy document of the IAM Policy."
 }
+
+output "aws_codebuild_webhook_url" {
+  value       = "${aws_codebuild_webhook.hook.payload_url}"
+  description = "The CodeBuild endpoint where webhook events are sent."
+}
+
+output "aws_codebuild_webhook_secret" {
+  value       = "${aws_codebuild_webhook.hook.secret}"
+  description = "The secret token of the associated repository. Not returned by the CodeBuild API for all source types."
+}

@@ -86,6 +86,10 @@ resource "aws_codebuild_project" "default" {
   tags = "${merge(map("Name", var.name), var.tags)}"
 }
 
+resource "aws_codebuild_webhook" "hook" {
+  project_name = "${aws_codebuild_project.default.name}"
+}
+
 # CodeBuild Service Role
 #
 # https://docs.aws.amazon.com/codebuild/latest/userguide/setting-up.html#setting-up-service-role
