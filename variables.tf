@@ -3,8 +3,8 @@ variable "name" {
   description = "The projects name."
 }
 
-variable "artifact_bucket_arn" {
-  default     = "arn:aws:s3:::*"
+variable "artifact_bucket" {
+  default     = "artifact_bucket"
   type        = "string"
   description = "The S3 Bucket ARN of artifacts."
 }
@@ -106,7 +106,7 @@ variable "project_location" {
 }
 
 variable "project_artifacts" {
-  default     = "CODEPIPELINE"
+  default     = "NO_ARTIFACTS"
   type        = "string"
   description = "The type of build output artifact."
 }

@@ -11,7 +11,10 @@ resource "aws_codebuild_project" "default" {
   # Information about the build output artifacts for the build project.
   # https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectArtifacts.html
   artifacts {
-    type = "${var.project_artifacts}"
+    type           = "${var.project_artifacts}"
+    location       = "${var.project_asset_storage}"
+    namespace_type = "BUILD_ID"
+    path           = "${var.name}"
   }
 
   # Information about the build environment of the build project.
@@ -157,8 +160,7 @@ data "aws_iam_policy_document" "policy" {
     ]
 
     resources = [
-      "${var.artifact_bucket_arn}",
-      "${var.artifact_bucket_arn}/*",
+      "${var.artifact_bucket}/*",
     ]
   }
 
