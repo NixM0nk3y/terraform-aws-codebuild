@@ -12,7 +12,7 @@ resource "aws_codebuild_project" "default" {
   # https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectArtifacts.html
   artifacts {
     type           = "${var.project_artifacts}"
-    location       = "${var.project_asset_storage}"
+    location       = "${var.artifact_bucket}"
     namespace_type = "BUILD_ID"
     path           = "${var.name}"
   }
