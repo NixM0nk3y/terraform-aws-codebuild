@@ -93,13 +93,19 @@ variable "tags" {
   description = "A mapping of tags to assign to all resources."
 }
 
-variable "projectsource" {
+variable "project_source" {
   default     = "CODEPIPELINE"
   type        = "string"
   description = "The type of repository that contains the source code to be built."
 }
 
-variable "projectartifacts" {
+variable "project_location" {
+  default     = ""
+  type        = "string"
+  description = "Information about the location of the source code to be built."
+}
+
+variable "project_artifacts" {
   default     = "CODEPIPELINE"
   type        = "string"
   description = "The type of build output artifact."
