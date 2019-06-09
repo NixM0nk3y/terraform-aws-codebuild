@@ -51,6 +51,12 @@ resource "aws_codebuild_project" "default" {
       "value" = "/codebuild/bitbucket/build_ssh_key"
       "type"  = "PARAMETER_STORE"
     }
+
+    environment_variable {
+      "name"  = "BUILDVERSION"
+      "value" = "/codebuild/build-number/${var.name}"
+      "type"  = "PARAMETER_STORE"
+    }
   }
 
   # Information about the build input source code for the build project.
