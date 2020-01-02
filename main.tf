@@ -4,17 +4,17 @@
 
 # https://www.terraform.io/docs/providers/aws/r/codebuild_project.html
 resource "aws_codebuild_project" "default" {
-  name         = "${var.name}"
-  description  = "${var.description}"
-  service_role = "${aws_iam_role.default.arn}"
+  name         = var.name
+  description  = var.description
+  service_role = aws_iam_role.default.arn
 
   # Information about the build output artifacts for the build project.
   # https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectArtifacts.html
   artifacts {
-    type           = "${var.project_artifacts}"
-    location       = "${var.artifact_bucket}"
+    type           = var.project_artifacts
+    location       = var.artifact_bucket
     namespace_type = "BUILD_ID"
-    path           = "${var.name}"
+    path           = var.name
   }
 
   # Information about the build environment of the build project.
@@ -22,7 +22,7 @@ resource "aws_codebuild_project" "default" {
   environment {
     # The type of build environment to use for related builds.
     # Available values are: LINUX_CONTAINER or WINDOWS_CONTAINER.
-    type = "${var.environment_type}"
+    type = var.environment_type
 
     # Information about the compute resources the build project uses. Available values include:
     #
@@ -31,45 +31,45 @@ resource "aws_codebuild_project" "default" {
     # - BUILD_GENERAL1_LARGE: Use up to 15 GB memory and 8 vCPUs for builds.
     #
     # BUILD_GENERAL1_SMALL is only valid if type is set to LINUX_CONTAINER
-    compute_type = "${var.compute_type}"
+    compute_type = var.compute_type
 
     # The image identifier of the Docker image to use for this build project.
     # https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html
-    image = "${var.image}"
+    image = var.image
 
     # Enables running the Docker daemon inside a Docker container.
     # Set to true only if the build project is be used to build Docker images,
     # and the specified build environment image is not provided by AWS CodeBuild with Docker support.
     # Otherwise, all associated builds that attempt to interact with the Docker daemon fail.
-    privileged_mode = "${var.privileged_mode}"
+    privileged_mode = var.privileged_mode
 
     #
     #
     #
     environment_variable {
-      "name"  = "BUILDKEY"
-      "value" = "/codebuild/bitbucket/build_ssh_key"
-      "type"  = "PARAMETER_STORE"
+      name  = "BUILDKEY"
+      value = "/codebuild/bitbucket/build_ssh_key"
+      type  = "PARAMETER_STORE"
     }
 
     environment_variable {
-      "name"  = "BUILDVERSION"
-      "value" = "/codebuild/build-number/${var.name}"
-      "type"  = "PARAMETER_STORE"
+      name  = "BUILDVERSION"
+      value = "/codebuild/build-number/${var.name}"
+      type  = "PARAMETER_STORE"
     }
   }
 
   # Information about the build input source code for the build project.
   # https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectSource.html
   source {
-    type     = "${var.project_source}"
-    location = "${var.project_location}"
+    type     = var.project_source
+    location = var.project_location
 
     # The build spec declaration to use for this build project's related builds.
     # If you include a build spec as part of the source code, by default,
     # the build spec file must be named buildspec.yml and placed in the root of your source directory.
     # https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage
-    buildspec = "${var.buildspec}"
+    buildspec = var.buildspec
   }
 
   # Information about the cache for the build project.
@@ -79,13 +79,13 @@ resource "aws_codebuild_project" "default" {
     #
     # - NO_CACHE: The build project does not use any cache.
     # - S3: The build project reads and writes from and to S3.
-    type = "${var.cache_type}"
+    type = var.cache_type
 
     # Information about the cache location:
     #
     # - NO_CACHE: This value is ignored.
     # - S3: This is the S3 bucket name/prefix.
-    location = "${var.cache_location}"
+    location = var.cache_location
   }
 
   # The KMS customer master key (CMK) to be used for encrypting the build output artifacts.
@@ -94,18 +94,23 @@ resource "aws_codebuild_project" "default" {
   #
   # If set empty string, CodeBuild uses the AWS-managed CMK for Amazon S3 in your AWS account.
   # https://docs.aws.amazon.com/codebuild/latest/userguide/setting-up.html#setting-up-kms
-  encryption_key = "${var.encryption_key}"
+  encryption_key = var.encryption_key
 
   # How long in minutes, from 5 to 480 (8 hours), for AWS CodeBuild to wait until timing out
   # any related build that does not get marked as completed.
-  build_timeout = "${var.build_timeout}"
+  build_timeout = var.build_timeout
 
   # A mapping of tags to assign to the resource.
-  tags = "${merge(map("Name", var.name), var.tags)}"
+  tags = merge(
+    {
+      "Name" = var.name
+    },
+    var.tags,
+  )
 }
 
 resource "aws_codebuild_webhook" "hook" {
-  project_name = "${aws_codebuild_project.default.name}"
+  project_name = aws_codebuild_project.default.name
 }
 
 # CodeBuild Service Role
@@ -114,11 +119,16 @@ resource "aws_codebuild_webhook" "hook" {
 
 # https://www.terraform.io/docs/providers/aws/r/iam_role.html
 resource "aws_iam_role" "default" {
-  name               = "${local.iam_name}"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
-  path               = "${var.iam_path}"
-  description        = "${var.description}"
-  tags               = "${merge(map("Name", local.iam_name), var.tags)}"
+  name               = local.iam_name
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+  path               = var.iam_path
+  description        = var.description
+  tags = merge(
+    {
+      "Name" = local.iam_name
+    },
+    var.tags,
+  )
 }
 
 data "aws_iam_policy_document" "assume_role_policy" {
@@ -134,10 +144,10 @@ data "aws_iam_policy_document" "assume_role_policy" {
 
 # https://www.terraform.io/docs/providers/aws/r/iam_policy.html
 resource "aws_iam_policy" "default" {
-  name        = "${local.iam_name}"
-  policy      = "${data.aws_iam_policy_document.policy.json}"
-  path        = "${var.iam_path}"
-  description = "${var.description}"
+  name        = local.iam_name
+  policy      = data.aws_iam_policy_document.policy.json
+  path        = var.iam_path
+  description = var.description
 }
 
 data "aws_iam_policy_document" "policy" {
@@ -151,7 +161,7 @@ data "aws_iam_policy_document" "policy" {
     ]
 
     resources = [
-      "${local.log_group_arn}",
+      local.log_group_arn,
       "${local.log_group_arn}:*",
     ]
   }
@@ -187,28 +197,31 @@ data "aws_iam_policy_document" "policy" {
 
 # https://www.terraform.io/docs/providers/aws/r/iam_role_policy_attachment.html
 resource "aws_iam_role_policy_attachment" "default" {
-  role       = "${aws_iam_role.default.name}"
-  policy_arn = "${aws_iam_policy.default.arn}"
+  role       = aws_iam_role.default.name
+  policy_arn = aws_iam_policy.default.arn
 }
 
 # ECR provides several managed policies that you can attach to IAM users or EC2 instances
 # that allow differing levels of control over Amazon ECR resources and API operations.
 # https://docs.aws.amazon.com/AmazonECR/latest/userguide/ecr_managed_policies.html
 resource "aws_iam_role_policy_attachment" "ecr" {
-  count = "${var.enabled_ecr_access}"
+  count = var.enabled_ecr_access
 
-  role       = "${aws_iam_role.default.name}"
-  policy_arn = "${var.ecr_access_policy_arn}"
+  role       = aws_iam_role.default.name
+  policy_arn = var.ecr_access_policy_arn
 }
 
 locals {
   iam_name      = "${var.name}-codebuild"
   log_group_arn = "arn:aws:logs:${local.region}:${local.account_id}:log-group:/aws/codebuild/${var.name}"
 
-  region     = "${data.aws_region.current.name}"
-  account_id = "${data.aws_caller_identity.current.account_id}"
+  region     = data.aws_region.current.name
+  account_id = data.aws_caller_identity.current.account_id
 }
 
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "current" {
+}
 
-data "aws_region" "current" {}
+data "aws_region" "current" {
+}
+
